@@ -60,6 +60,8 @@ const CATEGORY_LABELS = {
   appdata: '系统应用数据',
   workspace: '工作区临时产物',
   outputs: '产出物',
+  skills: '技能',
+  plugins: '插件',
 }
 
 /* ---------------------------- DSH path taxonomy --------------------------- */
@@ -335,21 +337,28 @@ async function collectDescriptors(config) {
     descriptors.push({ path: home, label: '（数据目录不可读）', category: 'home', kind: 'dir', safety: CAUTION, reason: String(error) })
   }
 
-  // Skills and installed plugins, one entry each. `~/.dsh/skills/<name>` is a
-  // plain directory per skill; profiles/<name>/node_modules/<pkg> holds the
-  // installed plugin packages (link: deps point outside, pnpm virtual store
-  // holds the rest). Per-skill / per-plugin rows are what a user actually
-  // decides about; the parent directories stay coarse-tier under home.
-  const pushHome = (path, label, kind, safety, reason) => {
-    descriptors.push({ path, label, category: 'home', kind, safety, reason })
-  }
+  // Skills and installed plugins, one entry each in their own categories.
+  // `~/.dsh/skills/<name>` is a plain directory per skill; the profile
+  // manifest's dependencies name the installed plugin packages (link: deps
+  // point outside, pnpm links the rest into node_modules). Per-skill /
+  // per-plugin rows are what a user actually decides about; the parent
+  // directories stay coarse-tier under home.
   try {
     const skillsDir = join(home, 'skills')
+    let listed = false
     for (const skill of await readdir(skillsDir, { withFileTypes: true })) {
       if (!skill.isDirectory() || skill.isSymbolicLink()) continue
-      pushHome(join(skillsDir, skill.name), `skills/${skill.name}`, 'dir', CAUTION,
-        '单个技能包：含操作手册与脚本；删除后该技能从会话目录消失，需重新安装')
+      listed = true
+      descriptors.push({
+        path: join(skillsDir, skill.name),
+        label: skill.name,
+        category: 'skills',
+        kind: 'dir',
+        safety: CAUTION,
+        reason: '单个技能包：含操作手册与脚本；删除后该技能从会话目录消失，需重新安装',
+      })
     }
+    if (listed) roots.push({ id: 'skills', label: CATEGORY_LABELS.skills, path: join(home, 'skills') })
   } catch {
     /* no skills dir */
   }
@@ -361,6 +370,7 @@ async function collectDescriptors(config) {
     const packageJsonPath = join(home, 'profiles', 'desktop', 'package.json')
     const manifest = JSON.parse(await readFile(packageJsonPath, 'utf8'))
     const pluginsDir = join(home, 'profiles', 'desktop', 'node_modules')
+    const pluginRows = []
     for (const [name, spec] of Object.entries(manifest.dependencies ?? {})) {
       if (typeof spec !== 'string') continue
       const link = spec.startsWith('link:')
@@ -376,10 +386,20 @@ async function collectDescriptors(config) {
       }
       const st = await lstat(path).catch(() => null)
       if (st === null) continue
-      pushHome(path, `插件 ${name}${link ? '（link）' : ''}`, 'dir', CAUTION,
-        link
+      pluginRows.push({
+        path,
+        label: `${name}${link ? '（link）' : ''}`,
+        category: 'plugins',
+        kind: 'dir',
+        safety: CAUTION,
+        reason: link
           ? '单个已装插件（link 安装，源码在工作区）：删除等于卸载该插件，需重启恢复'
-          : '单个已装插件：删除等于卸载该插件，需重启恢复')
+          : '单个已装插件：删除等于卸载该插件，需重启恢复',
+      })
+    }
+    if (pluginRows.length > 0) {
+      roots.push({ id: 'plugins', label: CATEGORY_LABELS.plugins, path: pluginsDir })
+      descriptors.push(...pluginRows)
     }
   } catch {
     /* no profile manifest */

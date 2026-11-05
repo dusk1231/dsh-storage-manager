@@ -1,3 +1,7 @@
+# 1.4.0
+
+- 「技能」与「插件」升级为独立分类（第六、第七类）：筛选条新增两枚 chip，分组视图各自成组；之前混在「DSH 数据目录」下。
+
 # 1.3.0
 
 - 新增技能与插件的逐条扫描：`~/.dsh/skills/<name>` 每个技能包一条；已装插件按 profile `package.json` 的 dependencies 逐条列出（npm 安装与 `link:` 安装均支持，link 型解析到真实源码目录并标注「（link）」），不再只有 profiles 整目录一条。
