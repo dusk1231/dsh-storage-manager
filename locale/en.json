@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DSH Storage Butler",
+    "description": "Measures DSH itself, its home data, system app data and workspace leftovers, and moves cleanable items to the Recycle Bin."
+  }
+}

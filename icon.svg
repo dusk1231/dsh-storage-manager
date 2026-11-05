@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="DSH Storage">
+  <rect width="48" height="48" rx="11" fill="#1C1E21"/>
+  <circle cx="24" cy="24" r="14.5" fill="none" stroke="#E3E5E6" stroke-opacity="0.35" stroke-width="3"/>
+  <path d="M24 9.5a14.5 14.5 0 0 1 12.3 22.2" fill="none" stroke="#A2D332" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M36.3 31.7a14.5 14.5 0 0 1-12.3 6.8" fill="none" stroke="#D82B22" stroke-width="3.6" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="24" cy="24" r="6.2" fill="none" stroke="#4B6B3F" stroke-width="3"/>
+  <circle cx="24" cy="24" r="2.1" fill="#A2D332"/>
+</svg>

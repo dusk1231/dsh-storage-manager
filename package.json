@@ -1,0 +1,53 @@
+{
+  "name": "dsh-storage-manager",
+  "version": "1.1.0",
+  "description": "DSH 存储管家：统计 DSH 本体、数据目录、系统应用数据与工作区临时产物的占用，按四级删除等级分类，并把可清理项移入回收站。",
+  "license": "MIT",
+  "author": "dusk1231",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dusk1231/dsh-storage-manager.git"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "disk-usage",
+    "storage",
+    "cleanup",
+    "windows"
+  ],
+  "engines": {
+    "node": ">=18.11.0"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dependencies": {
+    "get-folder-size": "^5.0.0",
+    "node-disk-info": "^1.3.0",
+    "trash": "^10.1.1"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
+    }
+  }
+}

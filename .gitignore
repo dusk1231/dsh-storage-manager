@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# logs
+*.log
+npm-debug.log*
+
+# editor
+.vscode/
+.idea/
+
+# os
+Thumbs.db
+.DS_Store
+
+# local test scaffolding
+.probe/
