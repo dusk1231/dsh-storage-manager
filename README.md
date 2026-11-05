@@ -16,6 +16,17 @@
   | 🟡 `caution` | 需确认 ！ | 会话、附件、登录态、模型；有实质代价，逐项确认 |
   | 🔴 `blocked` | 禁止删除 ✕ | DSH 本体、运行时、凭据、规则文件；删除会让 DSH 失效 |
 
+- **产出物分类（可选）**：通过 config 的 `outputDirs` 声明产线成品目录（例如渲染管线拷贝 MP4 的归档目录），每个目录整体成为一条 🟡「需确认」条目——可见、可统计、可删（回收站），删除带强警示。bundle patch 里配置：
+
+  ```yaml
+  - insert:
+      - id: dsh-storage-manager
+        name: 'dsh-storage-manager'
+        config:
+          outputDirs:
+            - 'D:\toor\考研资料\视频'
+  ```
+
 - **回收站删除**：所有清理动作走 [trash](https://github.com/sindresorhus/trash)（Windows 回收站），误删可还原；服务端拒绝任何 `blocked` 条目，即使前端被绕过。
 - **磁盘余量**：面板头部显示各盘剩余空间。
 - **资源管理器定位**：每行可一键在 Explorer 中选中该文件/目录。

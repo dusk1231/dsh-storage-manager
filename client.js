@@ -166,6 +166,7 @@ window.__ModuleLoader__.load({
         'group.home': 'DSH 数据目录（~/.dsh）',
         'group.appdata': '系统应用数据',
         'group.workspace': '工作区临时产物',
+        'group.outputs': '产出物',
         'group.instant': '🟢 放心删',
         'group.rebuild': '🩹 可重建',
         'group.caution': '🟡 需确认',
@@ -223,6 +224,7 @@ window.__ModuleLoader__.load({
         'group.home': 'DSH home (~/.dsh)',
         'group.appdata': 'System app data',
         'group.workspace': 'Workspace leftovers',
+        'group.outputs': 'Outputs',
         'group.instant': 'Instant',
         'group.rebuild': 'Rebuildable',
         'group.caution': 'Confirm first',
@@ -414,7 +416,7 @@ window.__ModuleLoader__.load({
           if (!byCategory.has(item.category)) byCategory.set(item.category, [])
           byCategory.get(item.category).push(item)
         }
-        for (const category of ['install', 'home', 'appdata', 'workspace']) {
+        for (const category of ['install', 'home', 'appdata', 'workspace', 'outputs']) {
           const list = byCategory.get(category)
           if (list === undefined || list.length === 0) continue
           list.sort((a, b) => b.size - a.size)
@@ -524,7 +526,7 @@ window.__ModuleLoader__.load({
           ),
 
           h('div', { className: 'dst-bar' },
-            ['all', 'install', 'home', 'appdata', 'workspace'].map((key) => h('button', {
+            ['all', 'install', 'home', 'appdata', 'workspace', 'outputs'].map((key) => h('button', {
               key, type: 'button', className: `dst-chip${filter === key ? ' is-on' : ''}`,
               onClick: () => setFilter(key),
             }, key === 'all' ? tr('filter.all') : tr(`group.${key}`))),

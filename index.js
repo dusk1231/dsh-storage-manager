@@ -59,6 +59,7 @@ const CATEGORY_LABELS = {
   home: 'DSH 数据目录',
   appdata: '系统应用数据',
   workspace: '工作区临时产物',
+  outputs: '产出物',
 }
 
 /* ---------------------------- DSH path taxonomy --------------------------- */
@@ -438,6 +439,32 @@ async function collectDescriptors(config) {
     }
   }
 
+  // Explicitly declared output directories (config.outputDirs, e.g. the folder
+  // a render pipeline copies finished MP4s into). These are the user's *work
+  // products*, so each declared directory itself becomes one caution-tier
+  // entry: visible, measurable, deletable — but never casually.
+  const outputDirs = Array.isArray(config.outputDirs) ? config.outputDirs : []
+  if (outputDirs.length > 0) {
+    roots.push({ id: 'outputs', label: CATEGORY_LABELS.outputs, path: '' })
+    for (const raw of outputDirs) {
+      if (typeof raw !== 'string' || raw.length === 0) continue
+      const path = raw.replace(/[\\/]+$/, '')
+      const key = path.toLowerCase()
+      if (insideOwn(key)) continue
+      if (workspaces.some((ws) => ws.toLowerCase() === key)) continue
+      const st = await lstat(path).catch(() => null)
+      if (st === null || !st.isDirectory()) continue
+      descriptors.push({
+        path,
+        label: basename(path) || path,
+        category: 'outputs',
+        kind: 'dir',
+        safety: CAUTION,
+        reason: '产线成品目录（config.outputDirs 指定）：最终成果，删除前务必确认已有备份或不再需要',
+      })
+    }
+  }
+
   // A parent workspace (e.g. Desktop) descends one level and can reach a
   // project that is itself a recognised workspace (Desktop/408); keep the
   // first descriptor so the same path never appears — or gets measured — twice.
@@ -657,6 +684,7 @@ let jobSeq = 0
 export function apply(ctx, rawConfig) {
   const config = {
     workspaces: Array.isArray(rawConfig?.workspaces) ? rawConfig.workspaces : [],
+    outputDirs: Array.isArray(rawConfig?.outputDirs) ? rawConfig.outputDirs : [],
   }
 
   ctx.inject(['webServer'], (hostCtx) => {

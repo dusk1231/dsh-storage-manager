@@ -3,6 +3,13 @@
 # 一行 Host 插件：在 webServer 上挂 /dsh-storage/api/* 四个路由（扫描、清理、
 # 定位、状态）。Client 半边由 package.json 的 dsh.client 声明，注册侧边栏
 # 图标与 main 面板。
+#
+# config 两个可选键：
+#   workspaces  — 额外统计的工作区目录（解码 sessions 目录名之外的补充）
+#   outputDirs  — 「产出物」目录：产线成品的输出目的地。每个目录整体成为一条
+#                 「需确认」条目，可见、可统计、可删除，但删除语义是成品，
+#                 面板会给出强警示。按需添加，例如：
+#                 outputDirs: ['D:/toor/考研资料/视频']
 - insert:
     - id: dsh-storage-manager
       name: 'dsh-storage-manager'
