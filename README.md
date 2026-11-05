@@ -6,7 +6,7 @@
 
 ## 功能
 
-- **全量统计**：DSH 安装目录（exe / resources / locales 等）+ `~/.dsh` 全部子目录 + `%LOCALAPPDATA%` / `%APPDATA%` 中的 DSH 痕迹（更新包缓存、Electron 缓存、内嵌浏览器配置等）+ 已知工作区里的 `node_modules` / `build` / `out` / `.venv` / `__pycache__` / pip 残留等临时产物。
+- **全量统计**：DSH 安装目录（exe / resources / locales 等）+ `~/.dsh` 全部子目录 + `%LOCALAPPDATA%` / `%APPDATA%` 中的 DSH 痕迹（更新包缓存、Electron 缓存、内嵌浏览器配置等）+ 已知工作区里的 `node_modules` / `build` / `out` / `.venv` / `__pycache__` / pip 残留等临时产物 + **每个技能包与每个已装插件单独一条**（npm 与 `link:` 安装均支持）。
 - **四级删除等级**（每个条目一个标签，面板可按等级筛选 / 分组 / 一键勾选）：
 
   | 等级 | 标签 | 含义 |

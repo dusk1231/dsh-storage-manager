@@ -20,9 +20,9 @@
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, statfsSync } from 'node:fs'
-import { lstat, readdir } from 'node:fs/promises'
+import { lstat, readdir, readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, isAbsolute, join, sep } from 'node:path'
 
 import folderSize from 'get-folder-size'
 import trash from 'trash'
@@ -333,6 +333,56 @@ async function collectDescriptors(config) {
     }
   } catch (error) {
     descriptors.push({ path: home, label: '（数据目录不可读）', category: 'home', kind: 'dir', safety: CAUTION, reason: String(error) })
+  }
+
+  // Skills and installed plugins, one entry each. `~/.dsh/skills/<name>` is a
+  // plain directory per skill; profiles/<name>/node_modules/<pkg> holds the
+  // installed plugin packages (link: deps point outside, pnpm virtual store
+  // holds the rest). Per-skill / per-plugin rows are what a user actually
+  // decides about; the parent directories stay coarse-tier under home.
+  const pushHome = (path, label, kind, safety, reason) => {
+    descriptors.push({ path, label, category: 'home', kind, safety, reason })
+  }
+  try {
+    const skillsDir = join(home, 'skills')
+    for (const skill of await readdir(skillsDir, { withFileTypes: true })) {
+      if (!skill.isDirectory() || skill.isSymbolicLink()) continue
+      pushHome(join(skillsDir, skill.name), `skills/${skill.name}`, 'dir', CAUTION,
+        '单个技能包：含操作手册与脚本；删除后该技能从会话目录消失，需重新安装')
+    }
+  } catch {
+    /* no skills dir */
+  }
+  try {
+    // List only the packages the user actually installed (profile manifest
+    // dependencies), not every transitive dep under node_modules. pnpm links
+    // `node_modules/<scope>/<name>` → virtual store; the manifest names the
+    // real units a user decides about.
+    const packageJsonPath = join(home, 'profiles', 'desktop', 'package.json')
+    const manifest = JSON.parse(await readFile(packageJsonPath, 'utf8'))
+    const pluginsDir = join(home, 'profiles', 'desktop', 'node_modules')
+    for (const [name, spec] of Object.entries(manifest.dependencies ?? {})) {
+      if (typeof spec !== 'string') continue
+      const link = spec.startsWith('link:')
+      let path
+      if (link) {
+        // `link:` is 5 chars; what follows may be an absolute path (`D:/…`,
+        // `C:\…`) or profile-relative (`./vendor/…`).
+        const target = spec.slice(5).replaceAll('/', sep)
+        path = isAbsolute(target) ? target : join(home, 'profiles', 'desktop', target)
+      } else {
+        const [scope, pkg] = name.startsWith('@') ? name.split('/') : [null, name]
+        path = scope === null ? join(pluginsDir, pkg) : join(pluginsDir, scope, pkg)
+      }
+      const st = await lstat(path).catch(() => null)
+      if (st === null) continue
+      pushHome(path, `插件 ${name}${link ? '（link）' : ''}`, 'dir', CAUTION,
+        link
+          ? '单个已装插件（link 安装，源码在工作区）：删除等于卸载该插件，需重启恢复'
+          : '单个已装插件：删除等于卸载该插件，需重启恢复')
+    }
+  } catch {
+    /* no profile manifest */
   }
 
   // profile-level leftovers: cordis.patch.yml.bak-*, package.json.bak-*, …
