@@ -1,6 +1,6 @@
 {
   "name": "dsh-storage-manager",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "DSH 存储管家：统计 DSH 本体、数据目录、系统应用数据与工作区临时产物的占用，按四级删除等级分类，并把可清理项移入回收站。",
   "license": "MIT",
   "author": "dusk1231",

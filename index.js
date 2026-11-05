@@ -441,11 +441,23 @@ async function collectDescriptors(config) {
 
   // Explicitly declared output directories (config.outputDirs, e.g. the folder
   // a render pipeline copies finished MP4s into). These are the user's *work
-  // products*, so each declared directory itself becomes one caution-tier
-  // entry: visible, measurable, deletable — but never casually.
+  // products*. A declared directory is drilled one level down: each child
+  // directory and loose file becomes its own caution-tier entry (so a parent
+  // "考研资料" lists 视频/ 数学/ 408/ and the scattered HTML reports
+  // separately), while a declared *file* is one entry itself.
   const outputDirs = Array.isArray(config.outputDirs) ? config.outputDirs : []
   if (outputDirs.length > 0) {
     roots.push({ id: 'outputs', label: CATEGORY_LABELS.outputs, path: '' })
+    const pushOutput = (path, label, kind) => {
+      descriptors.push({
+        path,
+        label,
+        category: 'outputs',
+        kind,
+        safety: CAUTION,
+        reason: '产线成品（config.outputDirs 声明）：最终成果，删除前务必确认已有备份或不再需要',
+      })
+    }
     for (const raw of outputDirs) {
       if (typeof raw !== 'string' || raw.length === 0) continue
       const path = raw.replace(/[\\/]+$/, '')
@@ -453,15 +465,26 @@ async function collectDescriptors(config) {
       if (insideOwn(key)) continue
       if (workspaces.some((ws) => ws.toLowerCase() === key)) continue
       const st = await lstat(path).catch(() => null)
-      if (st === null || !st.isDirectory()) continue
-      descriptors.push({
-        path,
-        label: basename(path) || path,
-        category: 'outputs',
-        kind: 'dir',
-        safety: CAUTION,
-        reason: '产线成品目录（config.outputDirs 指定）：最终成果，删除前务必确认已有备份或不再需要',
-      })
+      if (st === null) continue
+      if (!st.isDirectory()) {
+        pushOutput(path, basename(path) || path, 'file')
+        continue
+      }
+      // One level down: children are the real units a user deletes
+      // (视频/, 数学/, a single HTML report). The declared root itself is
+      // not listed — deleting it wholesale from a "storage cleaner" is
+      // exactly the accident this tier exists to prevent.
+      let children = []
+      try {
+        children = await readdir(path, { withFileTypes: true })
+      } catch {
+        continue
+      }
+      const rootLabel = basename(path) || path
+      for (const child of children) {
+        if (child.isSymbolicLink()) continue
+        pushOutput(join(path, child.name), `${rootLabel}/${child.name}`, child.isDirectory() ? 'dir' : 'file')
+      }
     }
   }
 
